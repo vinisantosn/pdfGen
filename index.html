@@ -31,6 +31,7 @@
       }
 
       input[type="text"],
+      input[type="tel"],
       input[type="number"] {
         width: calc(100% - 20px);
         padding: 8px;
@@ -65,9 +66,16 @@
       <label for="seller">Seller</label>
       <input type="text" name="seller" id="seller" />
       <label for="contact">Contact</label>
-      <input type="text" name="contact" id="contact" />
+      <input type="tel" name="contact" id="contact" />
       <label for="number">Number of</label>
-      <input type="number" min="1" max="5" name="number" id="number" />
+      <input
+        type="number"
+        min="1"
+        max="5"
+        name="number"
+        id="number"
+        value="1"
+      />
       <label for="initial-number">Initial number</label>
       <input
         type="number"
@@ -75,6 +83,7 @@
         max="2000"
         name="initial-number"
         id="initial-number"
+        value="0"
       />
       <button type="submit" onclick="genPDF()">Generate PDF</button>
     </form>
@@ -97,30 +106,35 @@
       const btn = document.querySelector("button");
       const getSeller = document.querySelector("#seller");
       const getContactSeller = document.querySelector("#contact");
-      const getNumber = document.querySelector("#number").valueAsNumber;
+      const getNumber = document.querySelector("#number");
       const getInitialNumber = document.querySelector("#initial-number");
       console.log(getInitialNumber.value);
 
       function genPDF() {
         var doc = new jsPDF("p", "pt", "letter");
 
-        function generateData(amount) {
+        // Função para gerar dados com base no número inicial fornecido
+        function generateData(amount, startNum, startCoin) {
           var result = [];
-          var nmbof = getInitialNumber.valueAsNumber; // Início da contagem a partir do valor inicial
-          var lastIdNumber = nmbof + 10; // Último número na coluna id
+          var nmbof = startNum; // Início da contagem a partir do valor inicial
+          var lastIdNumber = startCoin; // Início da contagem da coluna coin
           for (var i = 0; i < amount; i++) {
             var numString = (nmbof++).toString().padStart(3, "0"); // Formatando para três dígitos com zeros à esquerda
-            var nextNumString = (lastIdNumber ++).toString().padStart(3, "0"); // Próximo número na coluna coin
+            var nextNumString = (lastIdNumber++).toString().padStart(3, "0"); // Próximo número na coluna coin
             var data = {
               id: `Number of: ${numString} \nName: \nContact:`,
               coin: `Number of: ${nextNumString} \nName: \nContact:`,
             };
             result.push(data);
-            
           }
-          return result;
+          return {
+            data: result,
+            nextStartNum: nmbof,
+            nextStartCoin: lastIdNumber,
+          }; // Retorna os dados gerados, o próximo número inicial e o próximo número da coluna coin
         }
 
+        // Função para criar cabeçalhos da tabela
         function createHeaders(keys) {
           var result = [];
           for (var i = 0; i < keys.length; i += 1) {
@@ -136,13 +150,12 @@
           }
           return result;
         }
+
         var width = doc.internal.pageSize.getWidth();
         var height = doc.internal.pageSize.getHeight();
 
         var headers = createHeaders(["id", "coin"]);
         var paddingPdf = 32;
-
-        // ESCOPO DO PDF
 
         // LOGO
         doc.addImage(
@@ -156,27 +169,44 @@
 
         //  TITLE
         var titlePdf = "SALE CONTROL";
-
         doc.text(titlePdf, width / 2, 16 + 150 + paddingPdf, {
           align: "center",
         });
+
         //  DISCLAIMER
 
-        //  TABLE
-        doc.table(
-          width / 2,
-          32 + 16 + 150 + paddingPdf,
-          generateData(10),
-          headers,
-          { autoSize: true }
-        );
+        // Inicializa os valores para a primeira página
+        var currentPageStartNum = parseInt(getInitialNumber.valueAsNumber, 10); // Inicializa o número inicial para a primeira página
+        var currentPageStartCoin = currentPageStartNum + 10; // Inicializa o número inicial da coluna coin para a primeira página
 
-        //  SELLER ID
-        doc.text(
-          `VENDENDOR: ${getSeller.value} CONTATO: ${getContactSeller.value}`,
-          64,
-          730
-        );
+        //  Gerar tabelas para o número de páginas especificado
+        var numPages = parseInt(getNumber.valueAsNumber, 10);
+        for (var page = 1; page <= numPages; page++) {
+          if (page > 1) {
+            doc.addPage();
+          }
+
+          var { data, nextStartNum, nextStartCoin } = generateData(
+            10,
+            currentPageStartNum,
+            currentPageStartCoin
+          ); // Gera os dados para a página atual
+
+          // Atualiza os números iniciais para a próxima página
+          currentPageStartNum = nextStartCoin;
+          currentPageStartCoin = nextStartCoin+10;
+
+          doc.table(width / 2, 32 + 16 + 150 + paddingPdf, data, headers, {
+            autoSize: true,
+          });
+
+          //  SELLER ID
+          doc.text(
+            `VENDENDOR: ${getSeller.value} CONTATO: ${getContactSeller.value}`,
+            64,
+            730
+          );
+        }
 
         doc.save(`CONTROLES_RIFA_${getSeller.value}.pdf`);
       }
