@@ -5,58 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lorem ipsum</title>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          margin: 20px;
-        }
-    
-        h1 {
-          color: #333;
-        }
-    
-        form {
-          max-width: 400px;
-          margin: 20px auto;
-          padding: 20px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          background-color: #f9f9f9;
-        }
-    
-        label {
-          display: block;
-          margin-bottom: 10px;
-          font-weight: bold;
-        }
-    
-        input[type="text"],
-        input[type="number"] {
-          width: calc(100% - 20px);
-          padding: 8px;
-          margin-bottom: 10px;
-          font-size: 16px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-    
-        button {
-          display: block;
-          width: 100%;
-          padding: 10px;
-          margin-top: 20px;
-          font-size: 16px;
-          background-color: #4caf50;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-    
-        button:hover {
-          background-color: #45a049;
-        }
-      </style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      form {
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: calc(100% - 20px);
+        padding: 8px;
+        margin-bottom: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
   </head>
   <body>
     <h1>Lorem ipsum dolor</h1>
@@ -68,6 +68,14 @@
       <input type="text" name="contact" id="contact" />
       <label for="number">Number of</label>
       <input type="number" min="1" max="5" name="number" id="number" />
+      <label for="initial-number">Initial number</label>
+      <input
+        type="number"
+        min="0"
+        max="2000"
+        name="initial-number"
+        id="initial-number"
+      />
       <button type="submit" onclick="genPDF()">Generate PDF</button>
     </form>
 
@@ -89,24 +97,29 @@
       const btn = document.querySelector("button");
       const getSeller = document.querySelector("#seller");
       const getContactSeller = document.querySelector("#contact");
-      const getNumber = document.querySelector("#number");
+      const getNumber = document.querySelector("#number").valueAsNumber;
+      const getInitialNumber = document.querySelector("#initial-number");
+      console.log(getInitialNumber.value);
 
       function genPDF() {
         var doc = new jsPDF("p", "pt", "letter");
 
         function generateData(amount) {
-        var result = [];
-        var nmbof = 1; // Iniciar contagem de número a partir de 1
-        for (var i = 0; i < amount; i++) {
-          var data = {
-            id: `Number of: ${nmbof++} \nName: \nContact:`,
-            coin: `Number of: ${nmbof++} \nName: \nContact:`,
-          };
-          result.push(data);
-          
+          var result = [];
+          var nmbof = getInitialNumber.valueAsNumber; // Início da contagem a partir do valor inicial
+          var lastIdNumber = nmbof + 10; // Último número na coluna id
+          for (var i = 0; i < amount; i++) {
+            var numString = (nmbof++).toString().padStart(3, "0"); // Formatando para três dígitos com zeros à esquerda
+            var nextNumString = (lastIdNumber ++).toString().padStart(3, "0"); // Próximo número na coluna coin
+            var data = {
+              id: `Number of: ${numString} \nName: \nContact:`,
+              coin: `Number of: ${nextNumString} \nName: \nContact:`,
+            };
+            result.push(data);
+            
+          }
+          return result;
         }
-        return result;
-      }
 
         function createHeaders(keys) {
           var result = [];
@@ -143,7 +156,10 @@
 
         //  TITLE
         var titlePdf = "SALE CONTROL";
-        doc.text(titlePdf, width / 2, 16 + 150 + paddingPdf);
+
+        doc.text(titlePdf, width / 2, 16 + 150 + paddingPdf, {
+          align: "center",
+        });
         //  DISCLAIMER
 
         //  TABLE
