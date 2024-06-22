@@ -30,6 +30,10 @@
         font-weight: bold;
       }
 
+      input[type="text"]{
+        text-transform: uppercase;
+      }
+
       input[type="text"],
       input[type="tel"],
       input[type="number"] {
@@ -66,7 +70,7 @@
       <label for="seller">Seller</label>
       <input type="text" name="seller" id="seller" />
       <label for="contact">Contact</label>
-      <input type="tel" name="contact" id="contact" />
+      <input type="tel" name="contact" id="contact" class="phone-mask" />
       <label for="number">Number of</label>
       <input
         type="number"
@@ -99,6 +103,17 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.1.60/inputmask/jquery.inputmask.js"></script>
+
+    <script>
+      $(document).ready(function () {
+        $(".phone-mask").inputmask("(99) 9 9999-9999");
+      });
+      $("#seller").change(function () {
+        $(this).val($(this).val().toUpperCase());
+      });
+    </script>
     <script>
       const img = new Image();
       img.src = "/assets/images/testImage.jpg";
@@ -194,7 +209,7 @@
 
           // Atualiza os números iniciais para a próxima página
           currentPageStartNum = nextStartCoin;
-          currentPageStartCoin = nextStartCoin+10;
+          currentPageStartCoin = nextStartCoin + 10;
 
           doc.table(width / 2, 32 + 16 + 150 + paddingPdf, data, headers, {
             autoSize: true,
